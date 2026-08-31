@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glued Storyboard Studio</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Glued Storyboard Studio home"><span class="brand-mark">G</span><span>GLUED</span></a>
+    <div class="top-status"><span class="dot"></span><span id="engine-status">Checking render engine…</span></div>
+  </header>
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">LOCAL PRODUCTION STUDIO</p>
+        <h1>Your storyboard,<br><em>finished as a film.</em></h1>
+        <p class="hero-copy">Paste your script, bring in the images ChatGPT creates for it, add steady offline narration, then render a YouTube-ready MP4 with restrained cinematic movement.</p>
+      </div>
+      <div class="render-card">
+        <div class="render-icon">▶</div>
+        <div><strong>Real local rendering</strong><span>H.264 video · AAC audio · 1080p</span></div>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <aside class="sidebar panel">
+        <div class="section-head"><div><p class="eyebrow">PROJECTS</p><h2>Story library</h2></div></div>
+        <button type="button" class="button primary wide" id="new-project">New video from script</button>
+        <form id="import-form" class="import-box">
+          <input id="zip-input" type="file" name="storyboard" accept=".zip,application/zip" hidden />
+          <button type="button" class="button secondary wide" id="choose-zip">Import storyboard ZIP</button>
+          <small>Lumen and Glued ZIP exports are supported.</small>
+        </form>
+        <div id="project-list" class="project-list"></div>
+      </aside>
+
+      <section class="content">
+        <div id="empty-state" class="panel script-start">
+          <span class="start-mark">G</span>
+          <p class="eyebrow">START A NEW VIDEO</p>
+          <h2>Where does the script go?</h2>
+          <p>Right here. Paste the complete narration script below and Glued will divide it into well-paced visual scenes.</p>
+          <label for="new-title">Video title</label>
+          <input id="new-title" type="text" placeholder="Example: The Girl Who Changed Science" />
+          <label for="new-script">Paste your narration script here</label>
+          <textarea id="new-script" rows="13" placeholder="Paste the full script that the narrator should read..."></textarea>
+          <button id="create-project" class="button primary">Create storyboard from script</button>
+          <small>No API key is needed. The script and media stay on this computer.</small>
+        </div>
+        <div id="project-view" hidden>
+          <div class="project-title-row">
+            <div><p class="eyebrow">ACTIVE STORYBOARD</p><h2 id="project-title"></h2></div>
+            <div id="project-stats" class="stats"></div>
+          </div>
+
+          <article class="panel script-panel">
+            <div class="script-heading"><div><span class="step">SCRIPT</span><h3>Narration script</h3></div><span class="local-pill">SAVED LOCALLY</span></div>
+            <label for="script-title">Video title</label>
+            <input id="script-title" type="text" />
+            <label for="script-editor">Paste or edit the narration script here</label>
+            <textarea id="script-editor" rows="10"></textarea>
+            <div class="script-actions"><small>Saving re-divides the words into scenes while keeping existing images in scene order.</small><button id="save-script" class="button secondary">Save script &amp; rebuild scenes</button></div>
+          </article>
+
+          <div class="three-up">
+            <article class="panel tool-card">
+              <span class="step">01</span><h3>ChatGPT images</h3>
+              <p>Generate the scene images with ChatGPT, save them as 001, 002, 003 and so on, then import them together. Glued places them in scene order.</p>
+              <input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden />
+              <button id="import-images" class="button secondary">Import ChatGPT images</button>
+              <small>No image API key is used. PNG, JPG and WebP are supported.</small>
+            </article>
+            <article class="panel tool-card featured">
+              <span class="step">02</span><h3>Steady narration</h3>
+              <label for="voice">Voice</label>
+              <select id="voice"></select>
+              <label for="voice-rate">Reading pace</label>
+              <select id="voice-rate"><option value="-1">Relaxed</option><option value="0" selected>Steady</option><option value="1">Brisk</option></select>
+              <button id="generate-voice" class="button primary">Create continuous narration</button>
+              <small>Uses Kokoro Bella offline with warm cinematic delivery. Sentence gaps are tightened before rendering.</small>
+            </article>
+            <article class="panel tool-card">
+              <span class="step">03</span><h3>Render video</h3>
+              <p>Preview the stable pans and slow zooms, then create the full-resolution upload master.</p>
+              <div class="button-row"><button id="render-preview" class="button secondary">24s preview</button><button id="render-full" class="button primary">Render 1080p</button></div>
+              <small id="render-note">A video can render without narration, but it will be silent.</small>
+            </article>
+          </div>
+
+          <div id="job-panel" class="panel job-panel" hidden><div class="job-top"><strong id="job-label">Working…</strong><span id="job-percent">0%</span></div><div class="progress"><div id="job-progress"></div></div><pre id="job-error"></pre></div>
+          <div id="video-panel" class="panel video-panel" hidden><video id="video-result" controls></video><a id="download-video" class="button primary" download>Download MP4</a></div>
+          <div class="section-head scenes-head"><div><p class="eyebrow">VISUAL TIMELINE</p><h2>Steady motion, scene by scene</h2></div><span class="legend"><i></i> No random shake</span></div>
+          <div id="scene-grid" class="scene-grid"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

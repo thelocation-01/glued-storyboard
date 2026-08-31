@@ -1,0 +1,11 @@
+{
+  "provider": "kokoro-onnx-local",
+  "voiceId": "af_bella",
+  "displayName": "Bella",
+  "label": "Bella — warm and cinematic",
+  "language": "en-us",
+  "speed": 0.85,
+  "sampleRate": 24000,
+  "modelPath": "models/kokoro/kokoro-v1.0.onnx",
+  "voicesPath": "models/kokoro/voices-v1.0.bin"
+}
