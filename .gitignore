@@ -20,3 +20,5 @@ sample-project/
 !.env.example
 .DS_Store
 Thumbs.db
+*.zip
+*.tar.gz

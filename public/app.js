@@ -33,13 +33,20 @@ async function selectProject(id) {
   $('#project-title').textContent = state.project.title;
   $('#script-title').value = state.project.title;
   $('#script-editor').value = state.project.script;
+  $('#editorial-style').value = state.project.editorialStyle || 'documentary';
+  $('#overlay-density').value = state.project.overlayDensity || 'balanced';
+  $('#accent-color').value = state.project.accentColor || '#66f0c1';
+  $('#show-progress').checked = state.project.showProgress !== false;
   if (state.project.voice && [...$('#voice').options].some((option) => option.value === state.project.voice)) $('#voice').value = state.project.voice;
   if (state.project.voiceRate !== undefined) $('#voice-rate').value = String(state.project.voiceRate);
   const duration = state.project.scenes.reduce((sum, scene) => sum + scene.duration, 0);
   const missing = state.project.scenes.filter((scene) => !scene.imagePath).length;
-  $('#project-stats').innerHTML = `<span class="stat">${state.project.scenes.length} scenes</span><span class="stat">${formatDuration(duration)}</span><span class="stat">${missing ? `${missing} images missing` : 'Images complete'}</span><span class="stat">${state.project.narrationPath ? `${formatDuration(state.project.narrationDuration)} narration` : 'Narration needed'}</span>`;
+  $('#project-stats').innerHTML = `<span class="stat">${state.project.scenes.length} scenes</span><span class="stat">${formatDuration(duration)}</span><span class="stat">${escapeHtml(state.project.editorialStyle || 'documentary')} edit</span><span class="stat">${missing ? `${missing} images missing` : 'Images complete'}</span><span class="stat">${state.project.narrationPath ? `${formatDuration(state.project.narrationDuration)} narration` : 'Narration needed'}</span>`;
   $('#render-note').textContent = state.project.narrationPath ? 'Scene timings will conform to the single continuous narration track.' : 'Create narration before the final render to avoid a silent video.';
-  $('#scene-grid').innerHTML = state.project.scenes.map((scene, index) => `<article class="scene panel">${scene.imagePath ? `<img src="/${scene.imagePath}" alt="Scene ${index + 1}: ${escapeHtml(scene.title)}" />` : '<div class="missing">Image needed</div>'}<div class="scene-copy"><div class="scene-meta"><span>SCENE ${String(index + 1).padStart(2, '0')}</span><span>${escapeHtml(scene.motion.replaceAll('-', ' '))}</span></div><h4>${escapeHtml(scene.title)}</h4><p>${escapeHtml(scene.subtitle)}</p></div></article>`).join('');
+  $('#scene-grid').innerHTML = state.project.scenes.map((scene, index) => {
+    const editorial = scene.editorial || {type: 'minimal', label: '', value: ''};
+    return `<article class="scene panel">${scene.imagePath ? `<img src="/${scene.imagePath}" alt="Scene ${index + 1}: ${escapeHtml(scene.title)}" />` : '<div class="missing">Image needed</div>'}<div class="scene-copy"><div class="scene-meta"><span>SCENE ${String(index + 1).padStart(2, '0')}</span><span>${escapeHtml(scene.motion.replaceAll('-', ' '))}</span></div><div class="editorial-chip">${escapeHtml(editorial.type)} overlay</div>${editorial.value ? `<strong class="scene-callout">${escapeHtml(editorial.value)}</strong>` : ''}<h4>${escapeHtml(scene.title)}</h4><p>${escapeHtml(scene.subtitle)}</p></div></article>`;
+  }).join('');
   await refreshProjects();
 }
 
@@ -71,6 +78,18 @@ $('#save-script').addEventListener('click', async () => {
     const result = await api(`/api/projects/${encodeURIComponent(state.project.id)}/script`, {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({title: $('#script-title').value, script: $('#script-editor').value})});
     await selectProject(result.project.id);
     toast(`Script saved and rebuilt into ${result.project.scenes.length} scenes.`);
+  } catch (error) { toast(error.message); }
+  button.disabled = false;
+});
+
+$('#save-style').addEventListener('click', async () => {
+  if (!state.project) return;
+  const button = $('#save-style');
+  button.disabled = true;
+  try {
+    const result = await api(`/api/projects/${encodeURIComponent(state.project.id)}/style`, {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({editorialStyle: $('#editorial-style').value, overlayDensity: $('#overlay-density').value, accentColor: $('#accent-color').value, showProgress: $('#show-progress').checked})});
+    await selectProject(result.project.id);
+    toast(`Editorial style applied: ${result.project.editorialStyle} motion with ${result.project.overlayDensity} callouts.`);
   } catch (error) { toast(error.message); }
   button.disabled = false;
 });

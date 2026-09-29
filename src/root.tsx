@@ -5,8 +5,9 @@ import type {GluedProject} from './types';
 
 const fixture: GluedProject = {
   id: 'fixture', title: 'Glued Storyboard', script: '', fps: 30, width: 1920, height: 1080,
-  scenes: [{id: 'fixture-scene', narration: '', duration: 5, transition: 'cut', motion: 'slow-zoom-in', title: 'GLUED STORYBOARD', subtitle: 'Production renderer', imagePath: '', focalX: 50, focalY: 50, zoom: 1}],
-  captions: [], totalFrames: 150,
+  scenes: [{id: 'fixture-scene', narration: 'First, every still image becomes an editorial moment.', duration: 5, transition: 'cut', motion: 'slow-zoom-in', title: 'GLUED STORYBOARD', subtitle: 'Production renderer', imagePath: '', focalX: 50, focalY: 50, zoom: 1, editorial: {type: 'chapter', label: 'FIRST', value: 'Editorial motion', detail: 'KEY DISCOVERY', keyword: 'editorial'}}],
+  captions: [{start: 0, end: 5, text: 'Every still image becomes an editorial moment.'}], totalFrames: 150,
+  editorialStyle: 'documentary', overlayDensity: 'balanced', accentColor: '#66f0c1', showProgress: true,
 };
 
 const calculateMetadata: CalculateMetadataFunction<GluedProject> = ({props}) => ({

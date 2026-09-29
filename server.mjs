@@ -9,7 +9,7 @@ import ffmpegPath from 'ffmpeg-static';
 import ffprobeStatic from 'ffprobe-static';
 import {bundle} from '@remotion/bundler';
 import {renderMedia, selectComposition} from '@remotion/renderer';
-import {DATA_DIR, GENERATED_DIR, RENDERS_DIR, ROOT, conformProjectToNarration, createProjectFromScript, ensureDirectories, listProjects, loadProject, normalizeProject, saveProject} from './lib/project.mjs';
+import {DATA_DIR, GENERATED_DIR, RENDERS_DIR, ROOT, applyEditorialStyle, conformProjectToNarration, createProjectFromScript, ensureDirectories, listProjects, loadProject, normalizeProject, saveProject} from './lib/project.mjs';
 
 const PORT = Number(process.env.PORT || 3210);
 const app = express();
@@ -71,6 +71,15 @@ app.put('/api/projects/:id/script', async (req, res, next) => {
   try {
     const current = await loadProject(req.params.id);
     const project = await createProjectFromScript({title: req.body.title || current.title, script: req.body.script, project: current});
+    res.json({ok: true, project});
+  } catch (error) { next(error); }
+});
+
+app.put('/api/projects/:id/style', async (req, res, next) => {
+  try {
+    const project = applyEditorialStyle(await loadProject(req.params.id), req.body || {});
+    await saveProject(project);
+    bundlePromise = undefined;
     res.json({ok: true, project});
   } catch (error) { next(error); }
 });
@@ -156,15 +165,13 @@ app.post('/api/projects/:id/render', async (req, res, next) => {
         const serveUrl = await bundlePromise;
         const inputProps = conformProjectToNarration(project);
         if (profile === 'preview') {
-          inputProps.width = 960;
-          inputProps.height = 540;
           inputProps.totalFrames = Math.min(inputProps.totalFrames, Math.round(Math.max(8, Math.min(60, Number(req.body.previewSeconds || 24))) * inputProps.fps));
         }
         const composition = await selectComposition({serveUrl, id: 'GluedStoryboard', inputProps});
         const outputName = `${project.id}-${profile}-${Date.now()}.mp4`;
         const outputLocation = path.join(RENDERS_DIR, outputName);
         jobs.set(jobId, {...jobs.get(jobId), status: 'rendering', outputName});
-        await renderMedia({composition, serveUrl, codec: 'h264', audioCodec: 'aac', outputLocation, inputProps, crf: profile === 'preview' ? 24 : 18, onProgress: ({progress}) => jobs.set(jobId, {...jobs.get(jobId), status: 'rendering', progress: Math.round(progress * 100), outputName})});
+        await renderMedia({composition, serveUrl, codec: 'h264', audioCodec: 'aac', outputLocation, inputProps, scale: profile === 'preview' ? 0.5 : 1, crf: profile === 'preview' ? 24 : 18, x264Preset: 'veryfast', concurrency: profile === 'preview' ? 2 : 4, onProgress: ({progress}) => jobs.set(jobId, {...jobs.get(jobId), status: 'rendering', progress: Math.round(progress * 100), outputName})});
         jobs.set(jobId, {...jobs.get(jobId), status: 'complete', progress: 100, outputName, url: `/renders/${encodeURIComponent(outputName)}`});
       } catch (error) {
         bundlePromise = undefined;
